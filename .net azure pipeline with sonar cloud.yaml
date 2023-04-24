@@ -1,0 +1,55 @@
+trigger:
+- master
+
+pool:
+ vmImage:'windows-latest'
+
+variable:
+ buildConfiguration: 'Release'
+ buildPlatform: 'any cpu'
+
+steps: 
+- task: NuGetToolinstaller@0
+  displayName: 'Use NuGet 4.4.1'
+  inputs:
+   versionSpec: 4.4.1
+- task: NuGetCommand@2
+  displayName: 'NuGet restore'
+  inputs: 
+   restoreSolution: 'SomeConsoleApplication.sln'
+
+- task: SonarCloudPrepare@1
+  displayName: 'Prepare Analysis on Configuarion'
+  inputs: 
+   SonarCloud: 'SC'
+   Organization: 'sajjanasaikumar4755 (sajjanasaikumar4755)'
+   ScannerMode: 'MSBuild'
+   projectKey: 'sajjanasaikumar4755_SonarCloud'
+   ProjectName: 'SonarCloud'
+
+- task: VSBuild@1
+  displayName: 'Build solution **\*.sln'
+  inputs: 
+   Solution: '**\*.sln'
+   Platform: '$(BuildPlatform)'
+
+- task: VSTest@2
+  displayName: 'VsTest - testAssemblies'
+  inputs:
+   TestassemblyVer2: 
+    '**\$(BuildConfiguration)\*test*.dll
+    !**\obj\**'
+   codeCoverageEnabled: true
+   platform: '$(BuildPlatform)'
+   configuration: '$(BuildConfiguration)'
+
+- task: SonarCloudAnalyze@1
+  displayName: 'RunCodeAnalysis'
+
+- task: SonarCloudPublish@1
+  displayName: 'Publish Quality Gate Result'
+
+
+
+   
+
